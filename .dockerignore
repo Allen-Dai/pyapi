@@ -1,0 +1,6 @@
+.env
+.git
+.gitignore
+__pycache__
+deployment.yaml
+README.md

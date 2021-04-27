@@ -3,7 +3,8 @@ from flask_restful import Api, Resource, reqparse
 import pymongo, json, string, random
 import loadenv
 
-client = pymongo.MongoClient(loadenv._get("DB_URL"))
+URL = loadenv._get("DB_URL") if loadenv._get("DB_URL")!=None else "mongo://127.0.0.1:27017"
+client = pymongo.MongoClient(URL)
 project = loadenv._get("PROJECT")
 
 app = Flask(__name__)
