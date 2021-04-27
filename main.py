@@ -23,26 +23,21 @@ class Bug(Resource):
 
         if bugs == []:
             return 204
-        return bugs
+        return bugs, 200
 
-    def put(self, user_id):
-        try:
-            bug_id = request.form["bug_id"]
-            update_content = json.loads(request.form["update"])
-
-            
-            client[project]["bug"].update_one({"bug_id" : bug_id},{"$set" : update_content}) 
-        except:
-            return {"message":"Errors"}, 404
 
     def post(self, user_id):
-        data = json.loads(request.form["create"])
+        data = json.loads(request.form)
         data["bug_id"] = (''.join(random.choice(string.ascii_letters + string.digits) for _ in range(40)))
         client[project]["bug"].insert_one(data)
         return {"message":"succeed"}, 200
 
 
-class DeleteBug(Resource):
+class UpdateDeleteBug(Resource):
+    def put(self, bug_id):
+        client[project]["bug"].update_one({"bug_id" : bug_id},{"$set" : request.form}) 
+        return {"message":"succeed"}, 200
+
     def delete(self, bug_id):
         client[project]["bug"].delete_one({"bug_id":bug_id})
         return {"message":"succeed"}, 200
@@ -53,7 +48,7 @@ class DeleteBug(Resource):
 
 api.add_resource(Bug, "/bug/<string:user_id>")
 
-api.add_resource(DeleteBug, "/bug/delete/<string:bug_id>")
+api.add_resource(UpdateDeleteBug, "/bug/ud/<string:bug_id>")
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
