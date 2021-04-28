@@ -6,7 +6,7 @@ import pymongo, json, string, random, os
 app = Flask(__name__)
 api = Api(app)
 
-URL = "mongodb://"+os.getenv("DB_URL")+"/27017"
+URL = "mongodb://"+os.getenv("DB_URL")+":27017"
 client = pymongo.MongoClient(URL)
 project = "testing"
 
