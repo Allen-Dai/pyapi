@@ -1,15 +1,16 @@
 from flask import Flask, request
+from decouple import config
 from flask_restful import Api, Resource, reqparse
-import pymongo, json, string, random
-import loadenv
+import pymongo, json, string, random, os
 
-URL = loadenv._get("DB_URL") if loadenv._get("DB_URL")!=None else "mongo://127.0.0.1:27017"
-client = pymongo.MongoClient(URL)
-project = loadenv._get("PROJECT")
 
 app = Flask(__name__)
 api = Api(app)
 
+
+URL = config("DB_URL")
+client = pymongo.MongoClient(URL)
+project = config("PROJECT")
 
 class Bug(Resource):
         
@@ -40,9 +41,13 @@ class UpdateDeleteBug(Resource):
         client[project]["bug"].delete_one({"bug_id":bug_id})
         return {"message":"succeed"}, 200
 
+class Connection(Resource):
+    def get(self):
+        return {"web":"started", "DB_URL":URL}
 
 api.add_resource(Bug, "/bug/<string:user_id>")
 api.add_resource(UpdateDeleteBug, "/bug/ud/<string:bug_id>")
+api.add_resource(Connection, "/")
 
 if __name__ == "__main__":
     app.run(debug=False)

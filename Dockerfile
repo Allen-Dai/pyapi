@@ -7,4 +7,7 @@ COPY . .
 
 EXPOSE 5000
 
+ENV DB_URL = "mongo"\
+    PROJECT = "default"
+
 CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0"] 
