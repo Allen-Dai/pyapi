@@ -1,5 +1,4 @@
 from flask import Flask, request
-from decouple import config
 from flask_restful import Api, Resource, reqparse
 import pymongo, json, string, random, os
 
@@ -7,10 +6,9 @@ import pymongo, json, string, random, os
 app = Flask(__name__)
 api = Api(app)
 
-
-URL = config("DB_URL")
+URL = os.getenv("DB_URL")
 client = pymongo.MongoClient(URL)
-project = config("PROJECT")
+project = os.getenv("PROJECT")
 
 class Bug(Resource):
         
