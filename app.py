@@ -8,7 +8,7 @@ api = Api(app)
 
 URL = "mongodb://"+os.getenv("DB_URL")+":27017"
 client = pymongo.MongoClient(URL)
-project = "testing"
+project = os.getenv("PROJECT")
 
 class Bug(Resource):
         
