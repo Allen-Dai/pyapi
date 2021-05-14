@@ -30,7 +30,6 @@ class Bug(Resource):
         return {"message":"succeed"}, 200
 
 
-class UpdateDeleteBug(Resource):
     def put(self, bug_id):
         client[project]["bug"].update_one({"bug_id" : bug_id},{"$set" : request.form}) 
         return {"message":"succeed"}, 200
@@ -39,13 +38,36 @@ class UpdateDeleteBug(Resource):
         client[project]["bug"].delete_one({"bug_id":bug_id})
         return {"message":"succeed"}, 200
 
-class Connection(Resource):
+class Login(Resource):
     def get(self):
-        return {"web":"started", "DB_URL":URL}
+        username = request.args.get("username")
+        password = request.args.get("password")
+        if (username==None or password==None):
+            return {"message":"Invalid input"}, 400
 
-api.add_resource(Bug, "/bug/<string:user_id>")
-api.add_resource(UpdateDeleteBug, "/bug/ud/<string:bug_id>")
-api.add_resource(Connection, "/")
+        cursor = client[project]["user"].find_one({"username":username, "password":password})
+        if cursor.count()==0:
+            return {"message":"Invalid username/password"}, 200
+
+
+        return {"message":"OK"}, 200
+
+    def post(self):
+        username = request.args.get("username")
+        password = request.args.get("password")
+
+        user = {"username":username, "password":password}
+        client[project]["user"].insert_one(user)
+        
+        return {"message":"Registered"}, 200
+
+
+
+
+        
+
+api.add_resource(Bug, "/bug")
+api.add_resource(Login, "/login")
 
 if __name__ == "__main__":
     app.run(debug=False)
