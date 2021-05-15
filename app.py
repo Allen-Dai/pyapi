@@ -18,7 +18,7 @@ class Bug(Resource):
         cursor = client[project]["bug"].find({"username":username},{"_id": False})
         
         if cursor.count()==0:
-            return 404
+            return {"message":"ok"}, 200
 
         bugs = []
         for bug in cursor:
@@ -28,10 +28,8 @@ class Bug(Resource):
 
 
     def post(self):
-        username = request.args.get("username")
         data = request.form.to_dict()
         data["bug_id"] = (''.join(random.choice(string.ascii_letters + string.digits) for _ in range(40)))
-        data["username"] = username
         client[project]["bug"].insert_one(data)
         return {"message":"succeed"}, 200
 
@@ -115,6 +113,16 @@ class Register(Resource):
 
     def post(self):
         user = request.form.to_dict()
+
+        if len(user)>2:
+            return {"message":"Bad request"}, 400
+
+        try:
+            username = user["username"]
+            password = user["password"]
+        except:
+            return {"message":"Bad request"}, 400
+
         if (client[project]["user"].find({"username":user["username"]})).count() > 0:
             return {"message":"Username Unavailble"}, 200
 
@@ -125,7 +133,7 @@ class Register(Resource):
 api.add_resource(Bug, "/bug")
 api.add_resource(Login, "/login")
 api.add_resource(RefreshService, "/refreshservice")
-api.add_resource(Register, "/Register")
+api.add_resource(Register, "/register")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
