@@ -52,14 +52,14 @@ class Login(Resource):
             username = user["username"]
             password = user["password"]
             if (len(username) == 0 or len(password) == 0):
-                return {"message":"Invalid inputs"}
+                return {"message":"Invalid inputs"}, 400
         except:
-            return {"message":"Invalid inputs"}
+            return {"message":"Invalid inputs"}, 400
 
         cursor = client[project]["user"].find(user)
 
         if cursor.count()==0:
-            return {"message":"Invalid username/password"}, 200
+            return {"message":"Invalid username/password"}, 200 
             
         access_token = jwt.encode(
                 {"exp": datetime.datetime.utcnow()+datetime.timedelta(minutes=5),
