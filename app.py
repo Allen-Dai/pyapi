@@ -80,16 +80,45 @@ class Login(Resource):
 
 
 class RefreshService(Resource):
-    def get(self):
-        access_token = 1
+    def post(self):
+        body = request.form.to_dict()
+        try:
+            refresh_token= body["refresh_token"]
+            username = body["username"]
+        except:
+            return {"message":"Bad request"}, 400
+
+        cursor = client[project]["user"].find_one({"username":username})
+
+        if cursor==None:
+            return {"message":"Bad request"}, 400
+        password = cursor["password"]
+
+        
+        try:
+            jwt.decode(refresh_token, os.getenv("REFRESH_SECRET")+password, algorithm="HS256")
+        except:
+            return {"message":"Token invalid/expired"}, 400
+
+        access_token = jwt.encode(
+                {"exp": datetime.datetime.utcnow()+datetime.timedelta(minutes=5),
+                 "iat": datetime.datetime.utcnow()},
+                os.getenv("ACCESS_SECRET"), 
+                headers = {"alg": "HS256", "typ": "JWT"},
+                algorithm="HS256")
+
+        return {"message":"ok", "access_token":access_token}, 200
+        
 
 
 class Register(Resource):
 
     def post(self):
         user = request.form.to_dict()
-        client[project]["user"].insert_one(user)
+        if (client[project]["user"].find({"username":user["username"]})).count() > 0:
+            return {"message":"Username Unavailble"}, 200
 
+        client[project]["user"].insert_one(user)
         return {"message":"Registered"}, 200
 
 
