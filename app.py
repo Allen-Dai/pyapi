@@ -45,26 +45,33 @@ class Bug(Resource):
         return {"message":"succeed"}, 200
 
 class Login(Resource):
-    def get(self):
-        username = request.args.get("username")
-        password = request.args.get("password")
-        if (username==None or password==None):
-            return {"message":"Invalid input"}, 400
+    def post(self):
+        user = request.form.to_dict()
 
-        cursor = client[project]["user"].find({"username":username, "password":password})
+        try:
+            username = user["username"]
+            password = user["password"]
+            if (len(username) == 0 or len(password) == 0):
+                return {"message":"Invalid inputs"}
+        except:
+            return {"message":"Invalid inputs"}
+
+        cursor = client[project]["user"].find(user)
 
         if cursor.count()==0:
             return {"message":"Invalid username/password"}, 200
             
         access_token = jwt.encode(
-                {"some":"payload","exp": datetime.datetime.utcnow()+datetime.timedelta(minutes=5)},
+                {"exp": datetime.datetime.utcnow()+datetime.timedelta(minutes=5),
+                 "iat": datetime.datetime.utcnow()},
                 os.getenv("ACCESS_SECRET"), 
                 headers = {"alg": "HS256", "typ": "JWT"},
                 algorithm="HS256")
 
         refresh_token = jwt.encode(
-                {"exp": datetime.datetime.utcnow()+datetime.timedelta(days=7)},
-                os.getenv("REFRESH_SECRET"), 
+                {"exp": datetime.datetime.utcnow()+datetime.timedelta(days=7),
+                 "iat": datetime.datetime.utcnow()},
+                os.getenv("REFRESH_SECRET")+user["password"], 
                 headers = {"alg": "HS256", "typ": "JWT"},
                 algorithm="HS256")
 
@@ -72,9 +79,9 @@ class Login(Resource):
         return {"message":"ok", "access":access_token.decode("utf-8"), "refresh":refresh_token.decode("utf-8")}, 200
 
 
-class Auth(Resource):
+class RefreshService(Resource):
     def get(self):
-        return {"verify":True}
+        access_token = 1
 
 
 class Register(Resource):
@@ -88,7 +95,7 @@ class Register(Resource):
 
 api.add_resource(Bug, "/bug")
 api.add_resource(Login, "/login")
-api.add_resource(Auth, "/auth")
+api.add_resource(RefreshService, "/refreshservice")
 api.add_resource(Register, "/Register")
 
 if __name__ == "__main__":
