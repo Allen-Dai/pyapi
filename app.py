@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_restful import Api, Resource, reqparse
 import pymongo, json, string, random, os, datetime, jwt
 
@@ -9,6 +9,8 @@ api = Api(app)
 URL = "mongodb://"+os.getenv("DB_URL")+":27017"
 client = pymongo.MongoClient(URL)
 project = os.getenv("PROJECT")
+
+ACAO = {"Access-Control-Allow-Origin":"*"}
 
 
 class Bug(Resource):
@@ -43,38 +45,48 @@ class Bug(Resource):
         return {"message":"succeed"}, 200
 
 class Login(Resource):
+
     def post(self):
-        user = request.form.to_dict()
+        user = json.loads(request.data.decode("utf-8"))
 
         try:
             username = user["username"]
             password = user["password"]
             if (len(username) == 0 or len(password) == 0):
-                return {"message":"Invalid inputs"}, 400
+                return {"message":"Invalid inputs"}, 400, ACAO
         except:
-            return {"message":"Invalid inputs"}, 400
+            return {"message":"Invalid inputs"}, 400, ACAO
 
-        cursor = client[project]["user"].find(user)
+        cursor = client[project]["user"].find_one(user)
 
-        if cursor.count()==0:
-            return {"message":"Invalid username/password"}, 200 
-            
+        if cursor==None:
+            return {"body":"Invalid username/password"}, 200, ACAO
+
+
+
         access_token = jwt.encode(
                 {"exp": datetime.datetime.utcnow()+datetime.timedelta(minutes=5),
                  "iat": datetime.datetime.utcnow()},
                 os.getenv("ACCESS_SECRET"), 
                 headers = {"alg": "HS256", "typ": "JWT"},
-                algorithm="HS256")
+                algorithm="HS256").decode("utf-8")
 
         refresh_token = jwt.encode(
                 {"exp": datetime.datetime.utcnow()+datetime.timedelta(days=7),
                  "iat": datetime.datetime.utcnow()},
                 os.getenv("REFRESH_SECRET")+user["password"], 
                 headers = {"alg": "HS256", "typ": "JWT"},
-                algorithm="HS256")
+                algorithm="HS256").decode("utf-8")
 
-        
-        return {"message":"ok", "access":access_token.decode("utf-8"), "refresh":refresh_token.decode("utf-8")}, 200
+
+        resp =  Response()
+        resp.headers.add("Access-Control-Allow-Origin","*")
+        resp.set_cookie("Access_Token", value = access_token, httponly = True, path = "/")
+        resp.set_cookie("Refresh_Token", value = refresh_token, httponly = True, path = "/")
+
+        return resp
+
+        #return {"message":"ok", "access_token":access_token.decode("utf-8"), "refresh_token":refresh_token.decode("utf-8")}, 200, ACAO
 
 
 class RefreshService(Resource):
@@ -112,22 +124,22 @@ class RefreshService(Resource):
 class Register(Resource):
 
     def post(self):
-        user = request.form.to_dict()
+        user = json.loads(request.data.decode("utf-8"))
 
         if len(user)>2:
-            return {"message":"Bad request"}, 400
+            return {"message":"Bad request"}, 400, ACAO
 
         try:
             username = user["username"]
             password = user["password"]
         except:
-            return {"message":"Bad request"}, 400
+            return {"message":"Bad request"}, 400, ACAO
 
         if (client[project]["user"].find({"username":user["username"]})).count() > 0:
-            return {"message":"Username Unavailble"}, 200
+            return {"message":"Username Unavailble"}, 200, ACAO
 
         client[project]["user"].insert_one(user)
-        return {"message":"Registered"}, 200
+        return {"message":"Registered"}, 200, ACAO
 
 
 api.add_resource(Bug, "/bug")
@@ -136,4 +148,4 @@ api.add_resource(RefreshService, "/refreshservice")
 api.add_resource(Register, "/register")
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
