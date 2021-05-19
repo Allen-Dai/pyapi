@@ -47,7 +47,11 @@ class Bug(Resource):
 class Login(Resource):
 
     def post(self):
-        user = json.loads(request.data.decode("utf-8"))
+        
+        #Incoming password should be encrypted by client
+
+        user = {"username":request.args.get("username"),"password":request.args.get("password")}
+
 
         try:
             username = user["username"]
@@ -91,6 +95,7 @@ class Login(Resource):
 
 class RefreshService(Resource):
     def post(self):
+        # NOT FIXED, token should be taken from Auth Bearer header
         body = request.form.to_dict()
         try:
             refresh_token= body["refresh_token"]
@@ -124,7 +129,7 @@ class RefreshService(Resource):
 class Register(Resource):
 
     def post(self):
-        user = json.loads(request.data.decode("utf-8"))
+        user = {"username":request.args.get("username"), "password":request.args.get("password")}
 
         if len(user)>2:
             return {"message":"Bad request"}, 400, ACAO
