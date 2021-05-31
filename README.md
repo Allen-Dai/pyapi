@@ -1,2 +1,3 @@
-# pyapi
-A restful api for my own web app. Using flask, flask_restful, Mongodb
+# Fastapi in Python
+
+An api for my own web. Using Fastapi + uvicorn. Mongodb
