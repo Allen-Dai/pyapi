@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 from model import Bug
 
-import uvicorn, pymongo, os, json, hashlib
+import uvicorn, pymongo, os 
 
 load_dotenv()
 URL = os.getenv("DB_URL")
@@ -12,7 +12,7 @@ client = pymongo.MongoClient(URL)
 app = FastAPI()
 
 @app.get("/")
-async def index():
+def index():
     return {"message":"Welcome"}
 
 
