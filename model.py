@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 class Bug(BaseModel):
-    id: int
+    id: str
     name: str
     date: str
     from_user: str
