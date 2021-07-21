@@ -7,4 +7,6 @@ class Bug(BaseModel):
     date: str
     from_user: str
     comment: Optional[str] = None
+    fix: str
+    priority: str
 
