@@ -17,7 +17,7 @@ def index():
 
 
 @app.get("/bug/user/{from_user}")
-async def get_user_bugs(from_user: str):
+def get_user_bugs(from_user: str):
     cursor = client[DB]["bug"].find({"from_user": from_user}, {"_id": False})
     bugs = []
     for bug in cursor:
@@ -25,15 +25,20 @@ async def get_user_bugs(from_user: str):
     return bugs
 
 @app.get("/bug/{bug_id}")
-async def get_bug(bug_id: int):
+def get_bug(bug_id: int):
     bug = client[DB]["bug"].find_one({"id": bug_id}, {"_id": False})
     return bug
 
 
 @app.post("/bug/")
-async def create_bug(bug: Bug):
+def create_bug(bug: Bug):
     client[DB]["bug"].insert_one(bug.dict())
     return bug 
+
+@app.put("/bug/")
+def update_bug(bug: Bug):
+    client[DB]["bug"].replace_one({"id": bug.id}, bug.dict())
+    return {"msg":"Ok"}
 
 
 #@app.post("/user/register/")
